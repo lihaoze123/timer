@@ -82,11 +82,15 @@ jobs:
     - name: Download Artifact for macOS
       uses: actions/download-artifact@v2
       with:
-        name: timer-macos    
+        name: timer-macos  
+    - name: Rename Artifact for macOS
+      run: mv timer timer-mac
     - name: Download Artifact for Linux
       uses: actions/download-artifact@v2
       with:
-        name: timer-linux    
+        name: timer-linux   
+    - name: Rename Artifact for Linux
+      run: mv timer timer-linux
     - name: Create Release
       id: create_release
       uses: actions/create-release@v1
@@ -104,7 +108,7 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./timer-windows/timer-windows/timer.exe    
+        asset_path: ./timer.exe    
         asset_name: timer-windows.exe
         asset_content_type: application/octet-stream
     - name: Upload Release Asset for macOS
@@ -114,7 +118,7 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./timer-macos/timer-macos/timer    
+        asset_path: ./timer-mac
         asset_name: timer-mac
         asset_content_type: application/octet-stream
     - name: Upload Release Asset for Linux
@@ -124,6 +128,6 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./timer-linux/timer-linux/timer    
+        asset_path: ./timer-linux  
         asset_name: timer-linux
         asset_content_type: application/octet-stream

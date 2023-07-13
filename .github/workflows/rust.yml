@@ -8,26 +8,122 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  build:
+  build-windows:    
+    runs-on: windows-latest    
 
+    steps:
+    - uses: actions/checkout@v3
+    - name: Setup Rust toolchain
+      uses: actions-rs/toolchain@v1
+      with:
+        toolchain: stable
+        override: true
+    - name: Build for Windows
+      run: cargo build --release --target=x86_64-pc-windows-gnu --verbose
+    - name: Upload Artifacts
+      uses: actions/upload-artifact@v2
+      with:
+        name: timer-windows    
+        path: target/x86_64-pc-windows-gnu/release/timer.exe
+
+  build-macos:    
+    runs-on: macos-latest    
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Setup Rust toolchain
+      uses: actions-rs/toolchain@v1
+      with:
+        toolchain: stable
+        override: true
+    - name: Build for macOS
+      run: cargo build --release --verbose
+    - name: Upload Artifacts
+      uses: actions/upload-artifact@v2
+      with:
+        name: timer-macos    
+        path: target/release/timer    
+
+  build-linux:
     runs-on: ubuntu-latest
 
     steps:
     - uses: actions/checkout@v3
-    - name: Build
-      run: cargo build --verbose
+    - name: Setup Rust toolchain
+      uses: actions-rs/toolchain@v1
+      with:
+        toolchain: stable
+        override: true
+    - name: Build for Linux
+      run: cargo build --release --verbose
+    - name: Upload Artifacts
+      uses: actions/upload-artifact@v2
+      with:
+        name: timer-linux    
+        path: target/release/timer
     - name: Run tests
       run: cargo test --verbose
     - name: Set up date variable
       id: date
       run: echo "::set-output name=date::$(date +'%Y%m%d%H%M%S')"
+    
+    outputs:
+      date: ${{ steps.date.outputs.date }}
+
+  release:
+    needs: [build-windows, build-macos, build-linux]    
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Download Artifact for Windows
+      uses: actions/download-artifact@v2
+      with:
+        name: timer-windows    
+    - name: Download Artifact for macOS
+      uses: actions/download-artifact@v2
+      with:
+        name: timer-macos    
+    - name: Download Artifact for Linux
+      uses: actions/download-artifact@v2
+      with:
+        name: timer-linux    
     - name: Create Release
       id: create_release
       uses: actions/create-release@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        tag_name: ${{ steps.date.outputs.date }}
-        release_name: Release ${{ steps.date.outputs.date }}
+        tag_name: ${{ needs.build-linux.outputs.date }}    
+        release_name: Release ${{ needs.build-linux.outputs.date }}    
         draft: false
         prerelease: false
+    - name: Upload Release Asset for Windows
+      id: upload-release-asset-windows
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./timer-windows/timer-windows/timer.exe    
+        asset_name: timer-windows.exe
+        asset_content_type: application/octet-stream
+    - name: Upload Release Asset for macOS
+      id: upload-release-asset-mac
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./timer-macos/timer-macos/timer    
+        asset_name: timer-mac
+        asset_content_type: application/octet-stream
+    - name: Upload Release Asset for Linux
+      id: upload-release-asset-linux
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./timer-linux/timer-linux/timer    
+        asset_name: timer-linux
+        asset_content_type: application/octet-stream

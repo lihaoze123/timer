@@ -63,12 +63,14 @@ jobs:
         path: target/release/timer
     - name: Run tests
       run: cargo test --verbose
-    - name: Set up date variable
-      id: date
-      run: echo "::set-output name=date::$(date +'%Y%m%d%H%M%S')"
+    - name: Get version
+      id: version
+      run: |
+        sudo apt-get install -y jq
+        echo "::set-output name=version::$(cargo metadata --format-version=1 | jq '.packages | map(select(.name=="timer")) | .[0].version' | tr -d '\"')"
     
     outputs:
-      date: ${{ steps.date.outputs.date }}
+      version: ${{ steps.version.outputs.version }}
 
   release:
     needs: [build-windows, build-macos, build-linux]    
@@ -97,8 +99,8 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        tag_name: ${{ needs.build-linux.outputs.date }}    
-        release_name: Release ${{ needs.build-linux.outputs.date }}    
+        tag_name: v${{ needs.build-linux.outputs.version }}    
+        release_name: v${{ needs.build-linux.outputs.version }}    
         draft: false
         prerelease: false
     - name: Upload Release Asset for Windows

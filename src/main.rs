@@ -23,7 +23,7 @@ fn countdown(t: u64, count: Arc<Mutex<u64>>) {
 
 fn timer(count: Arc<Mutex<u64>>) {
     loop {
-        countdown(1, Arc::clone(&count));
+        countdown(15, Arc::clone(&count));
         *count.lock().unwrap() += 1;
     }
 }

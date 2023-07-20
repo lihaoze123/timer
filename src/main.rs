@@ -9,7 +9,7 @@ use crossterm::cursor::Hide;
 use tui::Terminal;
 use tui::backend::CrosstermBackend;
 use tui::widgets::{Block, Borders, Paragraph};
-use tui::layout::{Layout, Constraint, Direction};
+use tui::layout::{Layout, Constraint, Direction, Alignment};
 use tui::style::{Color, Modifier, Style};
 use tui::text::{Text, Spans};
 
@@ -54,7 +54,8 @@ fn countdown(t: u64, count: Arc<Mutex<u64>>, reset: Arc<Mutex<bool>>) {
                     hours, minutes, seconds, millis
                 )))
                 .block(block)
-                .style(Style::default().fg(Color::White));
+                .style(Style::default().fg(Color::White))
+                .alignment(Alignment::Center); // Set alignment to Center
             f.render_widget(paragraph, chunks[0]);
         }).unwrap();
         sleep(Duration::from_millis(1));  // sleep for 1 millisecond

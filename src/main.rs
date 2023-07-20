@@ -85,13 +85,6 @@ fn countdown(t: u64, round_count: Arc<Mutex<u64>>, reset: Arc<Mutex<bool>>) {
     terminal.clear().expect("Failed to clear terminal");
 }
 
-fn timer(round_count: Arc<Mutex<u64>>, reset: Arc<Mutex<bool>>) {
-    loop {
-        countdown(15, Arc::clone(&round_count), Arc::clone(&reset));
-        *round_count.lock().expect("Failed to acquire lock on round_count") += 1;
-    }
-}
-
 fn main() {
     enable_raw_mode().unwrap();
     execute!(stdout(), Hide).unwrap();
@@ -100,7 +93,10 @@ fn main() {
     let round_count_clone = Arc::clone(&round_count);
     let reset_clone = Arc::clone(&reset);
     thread::spawn(move || {
-        timer(round_count_clone, reset_clone);
+        loop {
+                countdown(15, Arc::clone(&round_count_clone), Arc::clone(&reset_clone));
+                *round_count_clone.lock().expect("Failed to acquire lock on round_count") += 1;
+            };
     });
 
     loop {

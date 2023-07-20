@@ -87,7 +87,7 @@ fn countdown(t: u64, round_count: Arc<Mutex<u64>>, reset: Arc<Mutex<bool>>) {
 
 fn timer(round_count: Arc<Mutex<u64>>, reset: Arc<Mutex<bool>>) {
     loop {
-        countdown(1, Arc::clone(&round_count), Arc::clone(&reset));
+        countdown(15, Arc::clone(&round_count), Arc::clone(&reset));
         *round_count.lock().expect("Failed to acquire lock on round_count") += 1;
     }
 }
